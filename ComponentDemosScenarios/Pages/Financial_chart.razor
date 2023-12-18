@@ -1,0 +1,108 @@
+@page "/"
+@using FinTech_API
+@using Models.FinTech_API
+@using System.Reactive.Linq
+@using System.Reactive.Subjects
+@inject IFinTechAPIService FinTechAPIService
+@implements IDisposable;
+
+<div class="row-layout financial-chart-container">
+    <div class="column-layout group">
+        <IgbList class="list" financial_chart-scope>
+            @foreach (var item in _finTechAPIStock)
+            {
+                <IgbListItem @onclick="() => ListItemClick(item)">
+                    <IgbAvatar Src="@item.Img_url" Shape="AvatarShape.Rounded" slot="start" class="avatar" financial_chart-scope></IgbAvatar>
+                    <div slot="title">@item.Stock_symbol</div>
+                    <div slot="subtitle">@item.Stock_name</div>
+                </IgbListItem>
+            }
+        </IgbList>
+    </div>
+    <div class="column-layout group_1">
+        <div class="column-layout group_2">
+            <div class="row-layout group_3">
+                <img src="@_selectedStock?.Img_url" class="image" />
+                <div class="column-layout group_4">
+                    <h5 class="content">
+                        @_selectedStock?.Stock_symbol.ToString()
+                    </h5>
+                    <h6 class="content">
+                        @_selectedStock?.Stock_name.ToString()
+                    </h6>
+                </div>
+            </div>
+            <div class="row-layout group_5">
+                <div class="column-layout group_6">
+                    <p class="typography__overline text">
+                        Prev Close
+                    </p>
+                    <p class="typography__body-1 content">
+                        @_selectedStock?.Previous_close.ToString()
+                    </p>
+                </div>
+                <div class="column-layout group_6">
+                    <p class="typography__overline text">
+                        PE Ratio
+                    </p>
+                    <p class="typography__body-1 content">
+                        @_selectedStock?.Pe_ratio.ToString()
+                    </p>
+                </div>
+                <div class="column-layout group_6">
+                    <p class="typography__overline text">
+                        Earnings Date
+                    </p>
+                    <p class="typography__body-1 content">
+                        @_selectedStock?.Earnings_date.ToString()
+                    </p>
+                </div>
+            </div>
+        </div>
+        <IgbFinancialChart DataSource="@_finTechAPIStockData" class="financial-chart" financial_chart-scope></IgbFinancialChart>
+    </div>
+</div>
+
+@code {
+    private Stock __selectedStock;
+    public Stock _selectedStock
+    {
+        get { return __selectedStock; }
+        set
+        {
+            __selectedStock = value;
+            _finTechAPIStockDataSubject.OnNext(value);
+        }
+    }
+
+    private List<Stock> _finTechAPIStock = new();
+    private List<StockData> _finTechAPIStockData = new();
+    private Subject<object> _finTechAPIStockDataSubject = new Subject<object>();
+
+    private Subject<object> destroy = new();
+
+    public void ListItemClick(Stock item)
+    {
+        this._selectedStock = (Stock)item;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _selectedStock = await FinTechAPIService.GetStock("UNH");
+        _finTechAPIStock = await FinTechAPIService.GetStockList();
+        _finTechAPIStockData = await FinTechAPIService.GetStockDataList($"{_selectedStock?.Stock_symbol}");
+        _finTechAPIStockDataSubject.TakeUntil(this.destroy).Subscribe(async s =>         
+        {
+            _finTechAPIStockData = await FinTechAPIService.GetStockDataList($"{_selectedStock?.Stock_symbol}");
+            await InvokeAsync(StateHasChanged);
+        });
+
+        await base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        this.destroy.OnNext(null);
+        this.destroy.Dispose();
+    }
+}

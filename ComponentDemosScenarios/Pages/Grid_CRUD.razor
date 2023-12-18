@@ -1,0 +1,99 @@
+@page "/grid_crud"
+@using NorthwindAPIv2
+@using Models.NorthwindAPIv2
+@inject INorthwindAPIv2Service NorthwindAPIv2Service
+
+<div class="row-layout grid-crud-container">
+    <IgbGrid Data="@_northwindAPIv2CustomerDto" PrimaryKey="CustomerId" DisplayDensity="DisplayDensity.Cosy" RowSelection="GridSelectionMode.Single" RowEditable="true" Moving="true" AllowFiltering="true" AutoGenerate="false" RowDeleted="CustomersRowDeleted" RowAdded="CustomersRowAdded" RowEditDone="CustomersRowEditDone" class="ig-typography grid-plus" grid_crud-scope>
+        <IgbGridToolbar>
+            <IgbGridToolbarActions>
+                <IgbGridToolbarPinning></IgbGridToolbarPinning>
+                <IgbGridToolbarHiding></IgbGridToolbarHiding>
+                <IgbGridToolbarAdvancedFiltering></IgbGridToolbarAdvancedFiltering>
+            </IgbGridToolbarActions>
+            <IgbGridToolbarTitle>Grid with CRUD</IgbGridToolbarTitle>
+        </IgbGridToolbar>
+        <IgbColumn Field="CustomerId" DataType="GridColumnDataType.String" Header="customerId" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="CompanyName" DataType="GridColumnDataType.String" Header="companyName" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="ContactName" DataType="GridColumnDataType.String" Header="contactName" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="ContactTitle" DataType="GridColumnDataType.String" Header="contactTitle" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.Street" DataType="GridColumnDataType.String" Header="address street" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.City" DataType="GridColumnDataType.String" Header="address city" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.Region" DataType="GridColumnDataType.String" Header="address region" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.PostalCode" DataType="GridColumnDataType.String" Header="address postalCode" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.Country" DataType="GridColumnDataType.String" Header="address country" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbColumn Field="Address.Phone" DataType="GridColumnDataType.String" Header="address phone" Editable="true" Groupable="true" Sortable="true" Resizable="true" Selectable="false"></IgbColumn>
+        <IgbActionStrip>
+            <IgbGridPinningActions></IgbGridPinningActions>
+            <IgbGridEditingActions AddRow="true"></IgbGridEditingActions>
+        </IgbActionStrip>
+    </IgbGrid>
+</div>
+
+@code {
+    private List<CustomerDto> _northwindAPIv2CustomerDto = new();
+
+    private async void CustomersRowDeleted(IgbRowDataEventArgs args)
+    {
+        var primaryKey = args.Detail.PrimaryKey.ToString();
+        if (!string.IsNullOrEmpty(primaryKey))
+        {
+            var result = await NorthwindAPIv2Service.DeleteCustomerDto(primaryKey);
+            if (result != null)
+            {
+                _northwindAPIv2CustomerDto = await NorthwindAPIv2Service.GetCustomerDtoList() ?? _northwindAPIv2CustomerDto;
+                StateHasChanged();
+            }
+            else
+            {
+                // TODO: handle errors here.
+            }
+        }
+    }
+
+    private async void CustomersRowAdded(IgbRowDataEventArgs args)
+    {
+        var customerDto = (CustomerDto)args.Detail.Data;
+        if (customerDto != null)
+        {
+            var result = await NorthwindAPIv2Service.PostCustomerDto(customerDto);
+            if (result != null)
+            {
+                _northwindAPIv2CustomerDto = await NorthwindAPIv2Service.GetCustomerDtoList() ?? _northwindAPIv2CustomerDto;
+                StateHasChanged();
+            }
+            else
+            {
+                // TODO: handle errors here.
+            }
+        }
+    }
+
+    private async void CustomersRowEditDone(IgbGridEditDoneEventArgs args)
+    {
+        if(args.Detail.IsAddRow == false)
+        {
+            var customerDto = (CustomerDto)args.Detail.RowData;
+            if (customerDto != null)
+            {
+                var result = await NorthwindAPIv2Service.PutCustomerDto(customerDto);
+                if (result != null)
+                {
+                    _northwindAPIv2CustomerDto = await NorthwindAPIv2Service.GetCustomerDtoList() ?? _northwindAPIv2CustomerDto;
+                    StateHasChanged();
+                }
+                else
+                {
+                    // TODO: handle errors here.
+                }
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _northwindAPIv2CustomerDto = await NorthwindAPIv2Service.GetCustomerDtoList();
+
+        await base.OnInitializedAsync();
+    }
+}

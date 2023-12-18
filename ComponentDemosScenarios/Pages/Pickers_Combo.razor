@@ -1,0 +1,104 @@
+@page "/pickers_combo"
+@using Northwind
+@using Models.Northwind
+@inject INorthwindService NorthwindService
+
+<div class="row-layout pickers-combo-container">
+    <div class="row-layout group">
+        <div class="column-layout group_1">
+            <IgbSelect Outlined="true" Label="Employees" Placeholder="Select a value" Value="@_value" Change="@(e => _value = (string)e.Detail.Value)" class="user-input" pickers_combo-scope>
+                <span slot="prefix">
+                    <span class="material-icons icon">
+                        person
+                    </span>
+                </span>
+                @foreach (var item in _northwindEmployees)
+                {
+                    <IgbSelectItem Value="@item.EmployeeID.ToString()">
+                        @item.LastName
+                    </IgbSelectItem>
+                }
+            </IgbSelect>
+            <IgbSelect Outlined="false" Label="Label/Placeholder" Placeholder="pick a value" class="user-input" pickers_combo-scope>
+                <IgbSelectItem Value="Option">
+                    Option
+                </IgbSelectItem>
+            </IgbSelect>
+            <IgbSelect Outlined="true" Label="Label/Placeholder" Placeholder="pick a value" Value="@_value1" Change="@(e => _value1 = (string)e.Detail.Value)" class="user-input" pickers_combo-scope>
+                <IgbSelectItem Value="1">
+                    Android
+                </IgbSelectItem>
+                <IgbSelectItem Value="2">
+                    iOS
+                </IgbSelectItem>
+                <IgbSelectItem Value="3">
+                    Web
+                </IgbSelectItem>
+            </IgbSelect>
+            <IgbSelect Outlined="true" Label="Options" Placeholder="Select a value" class="user-input" pickers_combo-scope>
+                <span slot="suffix">
+                    <span class="material-icons icon">
+                        date_range
+                    </span>
+                </span>
+                <IgbSelectItem Value="Option">
+                    Option
+                </IgbSelectItem>
+                <IgbSelectItem Value="Option">
+                    Option
+                </IgbSelectItem>
+                <IgbSelectItem Value="Option">
+                    Option
+                </IgbSelectItem>
+            </IgbSelect>
+            <IgbSelect Outlined="false" Label="I have a label" Disabled="true" class="user-input" pickers_combo-scope>
+            </IgbSelect>
+        </div>
+        <div class="column-layout group_1">
+            <IgbCombo Outlined="true" Data="@_northwindCustomers" Label="Categories" Placeholder="no label + placeholder + multi_select" ValueKey="CustomerID" DisplayKey="CustomerID" autoFocusSearch="true" DisableFiltering="true" class="user-input" pickers_combo-scope>
+                <span slot="prefix">
+                    <span class="material-icons icon">
+                        person
+                    </span>
+                </span>
+                <span slot="helper-text">sample hint text</span>
+            </IgbCombo>
+            <IgbCombo Outlined="true" Data="@_northwindCustomers" Label="Description" Placeholder="disabled combo" Disabled="true" ValueKey="CustomerID" DisplayKey="CustomerID" DisableFiltering="true" class="user-input" pickers_combo-scope>
+                <span slot="prefix">
+                    <span class="material-icons icon">
+                        person
+                    </span>
+                </span>
+                <span slot="suffix">
+                    <span class="material-icons icon_1">
+                        warning
+                    </span>
+                </span>
+            </IgbCombo>
+            <IgbCombo Data="@_northwindEmployees" Label="Names" Placeholder="Box-style combo" ValueKey="EmployeeID" DisplayKey="FirstName" Outlined="false" SingleSelect="true" class="user-input" pickers_combo-scope>
+                <span slot="prefix">
+                    <span class="material-icons icon">
+                        person
+                    </span>
+                </span>
+            </IgbCombo>
+            <IgbCombo Data="@_northwindEmployees" Placeholder="Box-style combo + disabled" Disabled="true" ValueKey="EmployeeID" DisplayKey="FirstName" autoFocusSearch="true" Outlined="false" DisableFiltering="true" class="user-input" pickers_combo-scope></IgbCombo>
+            <IgbDatePicker Label="Date" class="date-picker" pickers_combo-scope></IgbDatePicker>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _value = "2";
+    private List<EmployeesType> _northwindEmployees = new();
+    private string _value1 = "3";
+    private List<CustomersType> _northwindCustomers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _northwindEmployees = await NorthwindService.GetEmployees();
+        _northwindCustomers = await NorthwindService.GetCustomers();
+
+        await base.OnInitializedAsync();
+    }
+}
